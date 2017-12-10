@@ -5,10 +5,10 @@ from matplotlib import pyplot
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import cross_val_score
 # load data
-dataset = loadtxt('./coinbaseBTCUSD-withsignals-cleaned.csv', delimiter=",", skiprows=1)
+dataset = loadtxt('./coinbaseBTCUSD-withsignals-2hr-cleaned.csv', delimiter=",", skiprows=1)
 # split data into X and y
-X = dataset[:,0:13]
-Y = dataset[:,13]
+X = dataset[:,0:14]
+Y = dataset[:,14]
 # CV model
 # note that scikit will automatically determine this is a multiclass problem
 model = XGBClassifier()
@@ -22,6 +22,4 @@ plot_tree(model, num_trees=0, rankdir='LR')
 # plot feature importance
 plot_importance(model)
 pyplot.show()
-
-# feature selection wiht feature importance scores?
 
