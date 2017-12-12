@@ -15,10 +15,10 @@ df = df.loc['2014-12-01T06:00:00':'2017-10-19T23:59:00']  # remove rows that do 
 df = df.resample(rule="240T").agg(
 		{'open':'first','high':'max','low':'min','close':'last','volbtc':'sum','volusd':'sum','wtdprice':'last'})
 # 2017- data
-df = df['1-1-2017':].copy()
+df = df['6-1-2016':].copy()
 # bollinger bands
 df['bb_high'],df['bb_mid'],df['bb_low'] = ta.BBANDS(np.asarray(df.close),
-                                                  timeperiod=14,nbdevup=1.8,nbdevdn=1.8,matype=0)
+                                                  timeperiod=7,nbdevup=1.3,nbdevdn=1.3,matype=0)
 # rsi
 df['rsi'] = ta.RSI(np.asarray(df.close),timeperiod=14)
 
@@ -27,9 +27,11 @@ df['rsi'] = ta.RSI(np.asarray(df.close),timeperiod=14)
 # backteset BB to avoid back-testing bias
 df['close_lag1'] = df.close.shift(1)
 df['bb_low_lag1'] = df.bb_low.shift(1)
+df['bb_mid_lag1'] = df.bb_mid.shift(1)
 df['bb_high_lag1'] = df.bb_high.shift(1)
 df['close_lag2'] = df.close.shift(2)
 df['bb_low_lag2'] = df.bb_low.shift(2)
+df['bb_mid_lag2'] = df.bb_mid.shift(1)
 df['bb_high_lag2'] = df.bb_high.shift(2)
 df['rsi_lag1'] = df.rsi.shift(1)
 df['rsi_lag2'] = df.rsi.shift(2)
@@ -38,7 +40,7 @@ df['rsi_lag2'] = df.rsi.shift(2)
 df['signal'] = 0  # default to do nothing
 # TODO: refine until the signals look right!!!!
 # if lag2 price is less than lag2 bb lower and the oppostive for lag1 values, then buy signal
-df.loc[(df.close_lag2<df.bb_low_lag2) & (df.close_lag1<df.bb_low_lag1) & (df.rsi_lag1<35),'signal'] = 1
+df.loc[(df.close_lag2<df.bb_low_lag2) & (df.close_lag1<df.bb_low_lag1) & (df.rsi_lag1<45),'signal'] = 1
 # if lag2 price is less than lag2 bb upper and the oppostite for lag1 values, then sell signal
 # TODO: need to add a check for enough profit before selling???
 df.loc[(df.close_lag2>df.bb_high_lag2) & (df.close_lag1>df.bb_high_lag1) & (df.rsi_lag1>85),'signal'] = -1
@@ -104,7 +106,7 @@ ax[0].plot(df['bb_low'],linestyle='--',label='low')
 ax[0].legend(loc='upper left')
 ax[1].plot(df['rsi'],color='green',label='rsi')
 ax[1].axhline(y=85,linestyle='--',color='orange')
-ax[1].axhline(y=35,linestyle='--',color='orange')
+ax[1].axhline(y=45,linestyle='--',color='orange')
 ax[1].legend(loc='upper left')
 ax[2].plot(df['signal'],marker='o',markersize=5,linestyle='',label='signal',color='red')
 ax[2].legend(loc='upper left')
@@ -113,7 +115,7 @@ ax[3].legend(loc='upper left')
 ax[4].plot(df['trade_cum_returns'],label='trade')
 ax[4].plot(df['bh_cum_returns'],label='buy&hold')
 ax[4].legend(loc='upper left')
-plt.suptitle('BTC 4hr Close Prices, BB (14, 1.8), & RSI (14)')
+plt.suptitle('BTC 4hr Close Prices, BB (7, 1.3), & RSI (14)')
 plt.show()
 
 # # additional indicators
