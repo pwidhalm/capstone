@@ -7,8 +7,8 @@ from sklearn.model_selection import cross_val_score
 # load data
 dataset = loadtxt('./coinbaseBTCUSD-withsignals-4hr-cleaned.csv', delimiter=",", skiprows=1)
 # split data into X and y
-X = dataset[:,0:16]
-Y = dataset[:,16]
+X = dataset[:,0:18]
+Y = dataset[:,18]
 # CV model
 # note that scikit will automatically determine this is a multiclass problem
 model = XGBClassifier()
@@ -26,8 +26,8 @@ pyplot.show()
 # load data
 dataset = loadtxt('./coinbaseBTCUSD-withsignals-4hr-cleaned-trimmed.csv', delimiter=",", skiprows=1)
 # split data into X and y
-X = dataset[:,0:3]
-Y = dataset[:,3]
+X = dataset[:,0:2]
+Y = dataset[:,2]
 # CV model
 # note that scikit will automatically determine this is a multiclass problem
 model = XGBClassifier()

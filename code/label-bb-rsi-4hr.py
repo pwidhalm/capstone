@@ -26,10 +26,12 @@ df['rsi'] = ta.RSI(np.asarray(df.close),timeperiod=14)
 # price cross over BB and RSI cross over threshold
 # backteset BB to avoid back-testing bias
 df['close_lag1'] = df.close.shift(1)
+df['volbtc_lag1'] = df.volbtc.shift(1)
 df['bb_low_lag1'] = df.bb_low.shift(1)
 df['bb_mid_lag1'] = df.bb_mid.shift(1)
 df['bb_high_lag1'] = df.bb_high.shift(1)
 df['close_lag2'] = df.close.shift(2)
+df['volbtc_lag2'] = df.volbtc.shift(2)
 df['bb_low_lag2'] = df.bb_low.shift(2)
 df['bb_mid_lag2'] = df.bb_mid.shift(1)
 df['bb_high_lag2'] = df.bb_high.shift(2)
