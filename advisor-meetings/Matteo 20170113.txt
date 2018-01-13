@@ -1,0 +1,36 @@
+— discussion about comments feedback
+
+- general feedback
+much more better than previous paper
+easy to finish when we have everything
+most of remarks are editorial
+better to complete the project
+take strategy and extend it
+extend to include december
+start writing some conclusion in paper
+annualize summary data
+focus on implemented strategy to better understand it and include other coins
+started structure of the market
+propose a strategy
+our model is saying to buy and hold
+we are the very beginning i note cryptocurrency history
+futures just arrived
+point is not to show it outperforms
+buy and hold may be the best strategy
+if in december, the model was able to spot the downward trend of the market then it would be better than buy and hold.
+show we are working to exploring sentiment 
+
+- marketplace
+pool of cryptocurrencies versus us dollar to visualize
+show visualization in october and december
+does it look different with major market capitalization change
+
+- sentiment
+sentiment analysis is difficult
+trying to get it to work is part of the research
+show a timeline of sentiment (positive, negative) on top of price for a crypto.
+try to extend current strategy to a longer period
+finding relationships is effective to explain a new market
+a starting point of sentiment analysis would be good.
+pull sentiment data and classify it 
+does it correlate with pricing for a currency?
