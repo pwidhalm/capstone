@@ -12,16 +12,35 @@ from sklearn.model_selection import ParameterGrid
 import time
 
 ### PARAMETERS
-# scenarios
-# scenario_grid = {'timeperiod':[8],'stddev':[1.3],'buy':[35],'sell':[80]}
-scenario_grid = {'timeperiod': [4,8,12,24,36],
-              'stddev': [1.3, 1.4, 1.5, 1.6],
-              'buy': [20, 25, 30, 35, 40],
-              'sell': [75, 80, 85, 90]}
+# default
 yr_trading_periods = 365.*24.
 trading_frequency = 1
 show_graphs = False
 print_results = False
+
+# scenarios
+# dial in initial numbers and algorithm
+# scenario_grid = {'bbperiod':[4],'rsiperiod':[8],'stddev':[1.3],'buy':[35],'sell':[75], 'algorithm':[1,2]}
+# show_graphs = True
+# print_results = True
+
+# expand before and after numbers with better algorithm
+# scenario_grid = {'bbperiod': [3,4,5],
+#                  'rsiperiod': [7,8,9],
+#                  'stddev': [1.3,1.4,1.5],
+#                  'buy': [30,35,40,45],
+#                  'sell': [70,75,80],
+#                  'algorithm':[1]}
+
+# final numbers 1.26 v. 0.83
+scenario_grid = {'bbperiod': [4],
+                 'rsiperiod': [8],
+                 'stddev': [1.3],
+                 'buy': [35],
+                 'sell': [75],
+                 'algorithm':[1]}
+show_graphs = True
+print_results = True
 
 ### DATA
 exchange_data = pd.read_csv("./btchourly-modified.csv")
@@ -37,15 +56,22 @@ def main():
 	'''
 	Main
 	'''
+	print("begin processing scenarios...")
 	start = time.clock()
+	no_scenarios = 0
 	# determine results for each scenario
 	results = []
 	for idx, scenario in enumerate(list(ParameterGrid(scenario_grid))):
 		results.extend(apply_trading_strategy(exchange_data,scenario, idx))
 		if show_graphs:
 			graph_data(exchange_data, scenario)
+		no_scenarios = idx
+		if idx % 100==0:
+			elapse_time = (time.clock()-start)/60.
+			print("%d scenarios processed in %0.2f min" % (no_scenarios, elapse_time))
+	print("")
 	elapse_time = (time.clock()-start)/60.
-	print("elapse time: %0.2f min" % elapse_time)
+	print("...processed %d scenarios in %0.2f min" % (no_scenarios, elapse_time))
 
 	# dataframe
 	results_df = pd.DataFrame(results)
@@ -68,17 +94,17 @@ def apply_trading_strategy(exchange_data,scenario, idx):
 	:param scenario:
 	:return: summary dataframe
 	'''
-	bb_timeperiod = scenario['timeperiod']
+	bb_period = scenario['bbperiod']
 	bb_stddev = scenario['stddev']
-	rsi_timeperiod = scenario['timeperiod']
+	rsi_period = scenario['rsiperiod']
 	rsi_buy = scenario['buy']
 	rsi_sell = scenario['sell']
 
 	# bollinger bands
 	exchange_data['bb_high'],exchange_data['bb_mid'],exchange_data['bb_low'] = \
-		ta.BBANDS(np.asarray(exchange_data.close),timeperiod=bb_timeperiod,nbdevup=bb_stddev,nbdevdn=bb_stddev,matype=0)
+		ta.BBANDS(np.asarray(exchange_data.close),timeperiod=bb_period,nbdevup=bb_stddev,nbdevdn=bb_stddev,matype=0)
 	# rsi
-	exchange_data['rsi'] = ta.RSI(np.asarray(exchange_data.close),timeperiod=rsi_timeperiod)
+	exchange_data['rsi'] = ta.RSI(np.asarray(exchange_data.close),timeperiod=rsi_period)
 
 	### TRADING SIGNAL (buy=1 , sell=-1, hold=0)
 	# price cross over BB and RSI cross over threshold
@@ -98,16 +124,27 @@ def apply_trading_strategy(exchange_data,scenario, idx):
 
 	# generate trading signals
 	exchange_data['signal'] = 0  # default to do nothing
-	# if lag2 price is less than lag2 bb lower and the opposite for lag1 values, then buy signal
-	exchange_data.loc[(exchange_data.close_lag2<exchange_data.bb_low_lag2) &
-	                  (exchange_data.close_lag1<exchange_data.bb_low_lag1) &
-	                  (exchange_data.rsi_lag1<rsi_buy),'signal'] = 1
-	# if lag2 price is less than lag2 bb upper and the opposite for lag1 values, then sell signal
-	exchange_data.loc[(exchange_data.close_lag2>exchange_data.bb_high_lag2) &
-	                  (exchange_data.close_lag1>exchange_data.bb_high_lag1) &
-	                  (exchange_data.rsi_lag1>rsi_sell),'signal'] = -1
+	if scenario['algorithm']==1: # bb and rsi
+		# if lag2 price is less than lag2 bb lower and the opposite for lag1 values, then buy signal
+		exchange_data.loc[(exchange_data.close_lag2<exchange_data.bb_low_lag2) &
+		                  (exchange_data.close_lag1<exchange_data.bb_low_lag1) &
+		                  (exchange_data.rsi_lag1<rsi_buy),'signal'] = 1
+		# if lag2 price is less than lag2 bb upper and the opposite for lag1 values, then sell signal
+		exchange_data.loc[(exchange_data.close_lag2>exchange_data.bb_high_lag2) &
+		                  (exchange_data.close_lag1>exchange_data.bb_high_lag1) &
+		                  (exchange_data.rsi_lag1>rsi_sell),'signal'] = -1
+	elif scenario['algorithm']==2: # rsi only
+		exchange_data.loc[(exchange_data.rsi_lag2<rsi_buy) &
+		                  (exchange_data.rsi_lag1<rsi_buy),'signal'] = 1
+		exchange_data.loc[(exchange_data.rsi_lag2>rsi_buy) &
+		                  (exchange_data.rsi_lag1>rsi_sell),'signal'] = -1
+	else:
+		raise "no algorithm provided!"
+
 	# first signal will be a buy
 	exchange_data.iloc[0,exchange_data.columns.get_loc('signal')] = 1
+	if print_results:
+		print(exchange_data.signal.value_counts())
 
 	### TRADING STRATEGY
 	# own asset=1, not own asset=0
@@ -147,8 +184,12 @@ def apply_trading_strategy(exchange_data,scenario, idx):
 	bh_yr_sharpe = np.sqrt(yr_trading_periods)*exchange_data.bh_returns.mean()/exchange_data.bh_returns.std()
 
 	# Summary Results Data Table
-	results = [{'scenario':idx, 'strategy':'trade', 'return':trade_yr_returns, 'stddev':trade_yr_std, 'sharpe':trade_yr_sharpe},
-	           {'scenario':idx,'strategy':'buy&hold','return':bh_yr_returns,'stddev':bh_yr_std,'sharpe':bh_yr_sharpe}]
+	results = [{'scenario':idx,'strategy':'trade','return':trade_yr_returns,'stddev':trade_yr_std,'sharpe':trade_yr_sharpe,
+	            'bbperiod': scenario['bbperiod'],'rsiperiod':scenario['rsiperiod'],'stddev': scenario['stddev'],
+	            'buy':scenario['buy'],'sell':scenario['sell'],'algorithm':scenario['algorithm']},
+	           {'scenario':idx,'strategy':'buy&hold','return':bh_yr_returns,'stddev':bh_yr_std,'sharpe':bh_yr_sharpe,
+	            'bbperiod':scenario['bbperiod'],'rsiperiod':scenario['rsiperiod'],'stddev':scenario['stddev'],
+	            'buy':scenario['buy'],'sell':scenario['sell'],'algorithm':scenario['algorithm']}]
 	return results
 
 
@@ -158,9 +199,9 @@ def graph_data(exchange_data, scenario):
 	:param df:
 	:return:
 	'''
-	bb_timeperiod = scenario['timeperiod']
+	bb_timeperiod = scenario['bbperiod']
 	bb_stddev = scenario['stddev']
-	rsi_timeperiod = scenario['timeperiod']
+	rsi_timeperiod = scenario['rsiperiod']
 	rsi_buy = scenario['buy']
 	rsi_sell = scenario['sell']
 
