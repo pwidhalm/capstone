@@ -25,21 +25,21 @@ print_results = False
 # print_results = True
 
 # expand before and after numbers with better algorithm
-# scenario_grid = {'bbperiod': [3,4,5],
-#                  'rsiperiod': [7,8,9],
-#                  'stddev': [1.3,1.4,1.5],
-#                  'buy': [30,35,40,45],
-#                  'sell': [70,75,80],
-#                  'algorithm':[1]}
+scenario_grid = {'bbperiod': [3,4,5],
+                 'rsiperiod': [7,8,9],
+                 'stddev': [1.3,1.4,1.5],
+                 'buy': [30,35,40,45],
+                 'sell': [70,75,80],
+                 'algorithm':[1]}
 
 # final numbers 1.26 v. 0.83
-scenario_grid = {'bbperiod': [4],
-                 'rsiperiod': [8],
-                 'stddev': [1.3],
-                 'buy': [35],
-                 'sell': [75],
-                 'algorithm':[1]}
-show_graphs = True
+# scenario_grid = {'bbperiod': [4],
+#                  'rsiperiod': [8],
+#                  'stddev': [1.3],
+#                  'buy': [35],
+#                  'sell': [75],
+#                  'algorithm':[1]}
+show_graphs = False
 print_results = True
 
 ### DATA
