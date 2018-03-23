@@ -19,12 +19,6 @@ show_graphs = False
 print_results = False
 
 # scenarios
-# dial in initial numbers and algorithm
-# scenario_grid = {'bbperiod':[4],'rsiperiod':[8],'stddev':[1.3],'buy':[35],'sell':[75], 'algorithm':[1,2]}
-# show_graphs = True
-# print_results = True
-
-# expand before and after numbers with better algorithm
 scenario_grid = {'bbperiod': [3,4,5],
                  'rsiperiod': [7,8,9],
                  'stddev': [1.3,1.4,1.5],
@@ -47,8 +41,12 @@ exchange_data = pd.read_csv("./btchourly-modified.csv")
 exchange_data.utc = pd.to_datetime(exchange_data.utc)
 exchange_data.index = exchange_data.utc
 del exchange_data['utc']
-exchange_data = exchange_data.loc['2017-11-20T06:00:00':'2018-02-10T23:59:00']
-# exchange_data = exchange_data.loc['2017-11-20T06:00:00':'2017-12-15T23:59:00']
+# bear market
+# exchange_data = exchange_data.loc['2017-11-20T06:00:00':'2018-02-10T23:59:00']
+# bull market
+# exchange_data = exchange_data.loc['2017-7-01T00:00:00':'2017-10-31T23:59:00']
+# both
+exchange_data = exchange_data.loc['2017-7-01T00:00:00':'2018-02-10T23:59:00']
 trading_periods = len(exchange_data)
 
 
@@ -76,6 +74,7 @@ def main():
 	# dataframe
 	results_df = pd.DataFrame(results)
 	# results
+	pd.set_option('display.width', 500)
 	if print_results:
 		grouped_df = results_df.groupby('scenario')
 		for key, item in grouped_df:
